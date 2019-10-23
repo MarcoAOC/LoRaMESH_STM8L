@@ -75,7 +75,7 @@ if(GpioRead(NODEID, PIN, &ReturnedValue)  == MESH_ERROR){
 You can run the examples provided in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/examples">this</a> root following the instructions.
 
 ## Documentation
-You can read the full description of functions in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/sr/LoRaMESH.h">here</a>.
+You can read the full description of functions in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/src/LoRaMESH.h">here</a>.
 ## How to contribute
 
 Read [this](CONTRIBUTING.md) guide.
