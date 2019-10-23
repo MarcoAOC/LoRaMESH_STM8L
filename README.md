@@ -9,7 +9,7 @@
 </p>
 
 ## How to use
-Download all the files on <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/src">this root</a> and include them on your project. Good to use with STM8L Discovery board and your <a href="https://www.st.com/en/embedded-software/stsw-stm8016.html">"standard peripheral library"</a>.
+Download all the files on <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/src">this root</a> and include them on your project. Good to use with STM8L Discovery board and your <a href="https://www.st.com/en/embedded-software/stsw-stm8016.html">"standard peripheral library"</a>.
 
 ### Configuring USART Interface 
 As STM8L152C6T6 has only one USART interface and the LoRaMESH module has two, the choice of which interface will be used will be made by the hardware connection.
@@ -72,10 +72,10 @@ if(GpioRead(NODEID, PIN, &ReturnedValue)  == MESH_ERROR){
 
 ### Running a example
 
-You can run the examples provided in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/examples">this</a> root following the instructions.
+You can run the examples provided in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/examples">this</a> root following the instructions.
 
 ## Documentation
-You can read the full description of functions in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L\src\LoRaMESH.h">here</a>.
+You can read the full description of functions in <a href="https://github.com/MarcoAOC/LoRaMESH_STM8L/tree/master/sr/LoRaMESH.h">here</a>.
 ## How to contribute
 
 Read [this](CONTRIBUTING.md) guide.
