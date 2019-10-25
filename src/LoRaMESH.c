@@ -188,9 +188,25 @@ void SerialCommandsInit(uint32_t USART_BaudRate,USART_WordLength_TypeDef USART_W
 
 
 
-void SerialTranspInit(uint32_t baudRate)
+void SerialTranspInit(uint32_t USART_BaudRate,USART_WordLength_TypeDef USART_WordLength,USART_StopBits_TypeDef USART_StopBits,USART_Parity_TypeDef USART_Parity)
 {
+  /* filter not used baudrates */
+                        
+  STM_EVAL_COMInit(COM1, USART_BaudRate, USART_WordLength, USART_StopBits,
+                   USART_Parity, (USART_Mode_TypeDef)(USART_Mode_Tx | USART_Mode_Rx));
   
+  /* Enable general interrupts */
+  enableInterrupts();
+
+  /* Disable Rx and Tx interrupts */
+  USART_ITConfig(EVAL_COM1, USART_IT_RXNE, DISABLE);
+  USART_ITConfig(EVAL_COM1, USART_IT_TC, DISABLE);
+
+  /* Enable USART */
+  USART_Cmd(EVAL_COM1, ENABLE);
+
+  /* Run local read */
+  LocalRead(&deviceId, &deviceNet, &deviceUniqueId);
 }
 
 
@@ -239,7 +255,39 @@ MeshStatus_Typedef PrepareFrameCommand(uint16_t id, uint8_t command, uint8_t* pa
 
 MeshStatus_Typedef PrepareFrameTransp(uint16_t id, uint8_t* payload, uint8_t payloadSize)
 {
-  return MESH_ERROR;
+  uint8_t i = 0;
+
+  if(payload == NULL) return MESH_ERROR;
+  if(id > 1023) return MESH_ERROR;
+  if(deviceId == -1) return MESH_ERROR;
+  
+  if((id != 0) && (deviceId == 0))  /* Is master */
+  {
+    frame.size = payloadSize + 2;
+    /* Loads the target's ID */
+    frame.buffer[i++] = id&0xFF;
+    frame.buffer[i++] = (id>>8)&0x03;
+  }
+  else
+  {
+    frame.size = payloadSize;
+  }
+  
+  if((payloadSize >= 0) && (payloadSize < MAX_PAYLOAD_SIZE))
+  {
+    /* Loads the payload */
+    memcpy(&frame.buffer[i], payload, payloadSize);
+  }
+  else
+  {
+    /* Invalid payload size */
+    memset(&frame.buffer[0], 0, MAX_BUFFER_SIZE);
+    return MESH_ERROR;
+  }
+
+  frame.command = false;
+
+  return MESH_OK;
 }
 
 
@@ -294,7 +342,52 @@ MeshStatus_Typedef ReceivePacketCommand(uint16_t* id, uint8_t* command, uint8_t*
 
 MeshStatus_Typedef ReceivePacketTransp(uint16_t* id, uint8_t* payload, uint8_t* payloadSize, uint32_t timeout)
 {
-  return MESH_ERROR;
+  uint16_t waitNextByte = 500;
+  
+  /* Assert parameters */
+  if((id == NULL) && (deviceId == 0)) return MESH_ERROR;
+  if(payload == NULL) return MESH_ERROR;
+  if(payloadSize == NULL) return MESH_ERROR;
+  if(deviceId == -1) return MESH_ERROR;
+
+  
+  uint8_t lastCount = RxCounter;
+   while( (timeout > 0 ) && (waitNextByte > 0) )
+  {
+    if(lastCount == RxCounter){
+      waitNextByte--;
+    }
+    else{
+      lastCount = RxCounter;
+      waitNextByte = 500;
+    }
+    timeout--;
+    delay(1);
+  }
+  
+  USART_ITConfig(EVAL_COM1, USART_IT_RXNE,DISABLE);
+
+  /* In case it didn't get any data */
+  if(((timeout == 0) && (RxCounter == 0))||(RxCounter == 0)) return MESH_ERROR;
+
+  if(deviceId == 0)
+  {
+    /* Copies ID */
+    *id = (uint16_t)frame.buffer[0] | ((uint16_t)frame.buffer[1] << 8);
+    /* Copies payload size */
+    *payloadSize = i-2;
+    /* Copies payload */
+    memcpy(payload, &frame.buffer[3], i-2);
+  }
+  else
+  {
+    /* Copies payload size */
+    *payloadSize = i;
+    /* Copies payload */
+    memcpy(payload, &frame.buffer[0], i);
+  }
+  
+  return MESH_OK;
 }
 
 
