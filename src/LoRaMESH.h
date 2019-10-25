@@ -95,13 +95,14 @@ void ArduinoSerialCommandsInit(uint32_t USART_BaudRate);
 
 
 /**
-  * @brief Initializes Transparent interface and the SoftwareSerial object on given Rx/Tx pins and Baudrate
-  * @param rxPin: Serial Rx pin
-  * @param txPin: Serial Tx pin
-  * @param baudRate: Serial baudrate, in bps
-  * @retval pointer to the SoftwareSerial object
+  * @brief Initializes and Enable USART port and Rx/Tx interrupts
+  * @param USART_BaudRate: Serial baudrate, in bps
+  * @param USART_WordLength: Size of data in bits
+  * @param USART_StopBits: Amount of bits to be transmitted at the end of frame
+  * @param USART_Parity: Type of parity
+  * @retval None
   */
-void SerialTranspInit(uint32_t baudRate);
+void SerialTranspInit(uint32_t USART_BaudRate,USART_WordLength_TypeDef USART_WordLength,USART_StopBits_TypeDef USART_StopBits,USART_Parity_TypeDef USART_Parity);
 
 
 
