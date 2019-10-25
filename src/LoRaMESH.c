@@ -188,9 +188,25 @@ void SerialCommandsInit(uint32_t USART_BaudRate,USART_WordLength_TypeDef USART_W
 
 
 
-void SerialTranspInit(uint32_t baudRate)
+void SerialTranspInit(uint32_t USART_BaudRate,USART_WordLength_TypeDef USART_WordLength,USART_StopBits_TypeDef USART_StopBits,USART_Parity_TypeDef USART_Parity)
 {
+  /* filter not used baudrates */
+                        
+  STM_EVAL_COMInit(COM1, USART_BaudRate, USART_WordLength, USART_StopBits,
+                   USART_Parity, (USART_Mode_TypeDef)(USART_Mode_Tx | USART_Mode_Rx));
   
+  /* Enable general interrupts */
+  enableInterrupts();
+
+  /* Disable Rx and Tx interrupts */
+  USART_ITConfig(EVAL_COM1, USART_IT_RXNE, DISABLE);
+  USART_ITConfig(EVAL_COM1, USART_IT_TC, DISABLE);
+
+  /* Enable USART */
+  USART_Cmd(EVAL_COM1, ENABLE);
+
+  /* Run local read */
+  LocalRead(&deviceId, &deviceNet, &deviceUniqueId);
 }
 
 
@@ -336,22 +352,24 @@ MeshStatus_Typedef ReceivePacketTransp(uint16_t* id, uint8_t* payload, uint8_t* 
   if(deviceId == -1) return MESH_ERROR;
 
   
-  /* Waits for reception */
-  while( ((timeout > 0 ) || (i > 0)) && (waitNextByte > 0) )
+  uint8_t lastCount = RxCounter;
+   while( (timeout > 0 ) && (waitNextByte > 0) )
   {
-    while (USART_GetFlagStatus(EVAL_COM1, USART_FLAG_RXNE) == RESET);
-    frame.buffer[i++] = USART_ReceiveData8(EVAL_COM1);
-    waitNextByte = 500;
-    if(i > 0)
-    {
+    if(lastCount == RxCounter){
       waitNextByte--;
+    }
+    else{
+      lastCount = RxCounter;
+      waitNextByte = 500;
     }
     timeout--;
     delay(1);
   }
+  
+  USART_ITConfig(EVAL_COM1, USART_IT_RXNE,DISABLE);
 
   /* In case it didn't get any data */
-  if((timeout == 0) && (i == 0)) return MESH_ERROR;
+  if(((timeout == 0) && (RxCounter == 0))||(RxCounter == 0)) return MESH_ERROR;
 
   if(deviceId == 0)
   {
